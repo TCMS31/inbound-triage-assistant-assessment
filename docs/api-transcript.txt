@@ -1,0 +1,65 @@
+# Real request/response pairs against a locally running backend.
+# Captured with NO API key set, which is the point: the app starts, the
+# deterministic paths work, and a missing key is a per-row error.
+
+$ curl -s http://127.0.0.1:8765/api/health
+{"status":"ok"}
+
+$ curl -s http://127.0.0.1:8765/api/inbound | jq "length"
+13
+
+# A malformed message (body is ".") never reaches a model:
+$ curl -s -X POST http://127.0.0.1:8765/api/triage/inb-010
+{
+    "id": "inb-010",
+    "result": {
+        "summary": "Low-signal or unparseable message \u2014 skipped LLM classification.",
+        "category": "noise_other",
+        "priority": "low",
+        "next_action": "Manual review \u2014 message body is empty, near-empty, or garbled."
+    },
+    "source": "heuristic",
+    "flags": [
+        "empty_or_near_empty_body"
+    ],
+    "error": false,
+    "error_message": null
+}
+
+# The same request again — now served from cache, and labelled as such:
+$ curl -s -X POST http://127.0.0.1:8765/api/triage/inb-010
+{
+    "id": "inb-010",
+    "result": {
+        "summary": "Low-signal or unparseable message \u2014 skipped LLM classification.",
+        "category": "noise_other",
+        "priority": "low",
+        "next_action": "Manual review \u2014 message body is empty, near-empty, or garbled."
+    },
+    "source": "cache",
+    "flags": [
+        "empty_or_near_empty_body",
+        "cached:heuristic"
+    ],
+    "error": false,
+    "error_message": null
+}
+
+# A message that does need a model, with no key configured. HTTP 200:
+$ curl -s -i -X POST http://127.0.0.1:8765/api/triage/inb-001 | head -1
+HTTP/1.1 200 OK
+$ curl -s -X POST http://127.0.0.1:8765/api/triage/inb-001
+{
+    "id": "inb-001",
+    "result": null,
+    "source": "llm",
+    "flags": [],
+    "error": true,
+    "error_message": "No LLM API key configured \u2014 set ANTHROPIC_API_KEY or OPENAI_API_KEY in backend/.env, or set LLM_PROVIDER=stub to run offline with the rule-based baseline."
+}
+
+# An unknown id is a 404, and so is an encoded path-traversal attempt:
+$ curl -s -X POST http://127.0.0.1:8765/api/triage/inb-999
+{"detail":"no inbound message with id 'inb-999'"}
+$ curl -s -o /dev/null -w "%{http_code}" --path-as-is -X POST http://127.0.0.1:8765/api/triage/..%2F..%2Fetc%2Fpasswd
+404

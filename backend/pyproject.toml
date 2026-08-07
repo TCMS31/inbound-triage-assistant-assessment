@@ -1,0 +1,57 @@
+[project]
+name = "triage-backend"
+version = "1.0.0"
+description = "Inbound Triage Assistant — FastAPI backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "anthropic>=0.40",
+]
+
+[project.optional-dependencies]
+# OpenAI is a drop-in alternative provider, not a requirement: an
+# Anthropic-only install should not pull a second vendor SDK.
+openai = ["openai>=1.40"]
+
+[project.scripts]
+triage-backend = "triage_backend.__main__:main"
+
+[dependency-groups]
+# The dev group installs the openai extra so the whole provider matrix is
+# exercised by the test suite regardless of how the app is deployed.
+dev = [
+    "openai>=1.40",
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "ruff>=0.7",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests deliberately construct odd objects and assert on private behaviour.
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers"
+filterwarnings = ["error::DeprecationWarning:triage_backend.*"]
+
+[tool.coverage.run]
+source = ["triage_backend"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/triage_backend"]

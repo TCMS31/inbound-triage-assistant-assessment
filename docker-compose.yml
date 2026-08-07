@@ -1,0 +1,40 @@
+# Local container stack: FastAPI behind nginx, same-origin, no CORS in play.
+#
+#   docker compose up --build
+#   open http://localhost:8761
+#
+# Host ports are overridable because 8080/8000 are usually already taken.
+services:
+  api:
+    build:
+      context: ./backend
+    environment:
+      # Nothing here is required — with no key the app still starts and every
+      # deterministic path (malformed detection, cache, health) works.
+      LLM_PROVIDER: ${LLM_PROVIDER:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MODEL_ID: ${MODEL_ID:-claude-haiku-4-5-20251001}
+      OPENAI_MODEL_ID: ${OPENAI_MODEL_ID:-gpt-4o-mini}
+      TRIAGE_FORCE_ERROR_ID: ${TRIAGE_FORCE_ERROR_ID:-}
+      RESULTS_PATH: /app/cache/results.json
+      PORT: "8787"
+    volumes:
+      # Triage cache survives a restart without baking into the image.
+      - triage-cache:/app/cache
+    ports:
+      - "${API_PORT:-8762}:8787"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8761}:8080"
+    restart: unless-stopped
+
+volumes:
+  triage-cache:
