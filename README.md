@@ -17,16 +17,35 @@ message content rather than message id.
 
 ## Run it
 
-Needs [`uv`](https://docs.astral.sh/uv/), [`pnpm`](https://pnpm.io/) and Node ≥ 18.
 **No API key is needed to start.** The app boots, serves the list, and every
-deterministic path works without one — rows that need a model report a per-row
+deterministic path works without one. Rows that need a model report a per-row
 error instead of taking the page down.
+
+### With Docker (one command)
+
+```bash
+cp .env.example .env          # optional; it defaults to LLM_PROVIDER=stub
+docker compose up --build
+```
+
+Open <http://localhost:8761>. The API is on <http://localhost:8762>
+(`/api/health`, `/docs`). `.env.example` selects `stub`, an offline rule-based
+baseline described under [Decisions](#decisions-id-defend-in-review), so the
+whole thing runs end to end with no key and no spend. Put a key in `.env` and set
+`LLM_PROVIDER=auto` for a real model. Set `TRIAGE_FORCE_ERROR_ID=inb-005` to
+watch one row fail and recover through Retry. `docker compose down -v` also
+drops the cached triage results.
+
+### Without Docker
+
+Needs Python 3.12 with [`uv`](https://docs.astral.sh/uv/), and Node 22 with
+pnpm (`corepack enable` picks up the version pinned in `package.json`).
 
 ```bash
 # terminal 1
 cd backend
-uv sync                       # add the OpenAI provider: uv sync --extra openai
-uv run fastapi dev src/triage_backend/main.py --port 8787
+uv sync
+LLM_PROVIDER=stub uv run fastapi dev src/triage_backend/main.py --port 8787
 ```
 
 ```bash
@@ -37,33 +56,37 @@ pnpm dev
 ```
 
 Open <http://localhost:5173>. The list renders immediately and each row triages
-itself, at most three calls in flight. Prefixing the backend command with
-`LLM_PROVIDER=stub` runs the whole thing end to end with no key and no spend —
-`stub` is an offline rule-based baseline, described under
-[Decisions](#decisions-id-defend-in-review). Containers are authored but
-**unbuilt** (see [Known gaps](#known-gaps)): `docker compose up --build` would
-put the UI on :8761 and the API on :8762.
+itself, at most three calls in flight. Drop `LLM_PROVIDER=stub` once a key is in
+`backend/.env`.
 
 ## What you see
 
-All three captured at 1440x900 with `LLM_PROVIDER=stub` and
-`TRIAGE_FORCE_ERROR_ID=inb-005`. **They contain zero model output** — that is
-why every triaged row is badged `offline rule baseline — not a model`. The UI
-will not let a baseline result masquerade as a model result.
+All four were captured with Playwright against the compose stack, with
+`LLM_PROVIDER=stub` and `TRIAGE_FORCE_ERROR_ID=inb-005`. **They contain zero
+model output**, which is why every triaged row is badged
+`offline rule baseline — not a model`. The UI will not let a baseline result
+pass as a model result, including after a reload, when the row comes back from
+the cache.
 
 | | |
 |---|---|
 | ![Top of the unfiltered list, Showing 13 of 13](docs/screenshots/triage-list.png) | ![Priority filtered to High, with a failed row still on screen](docs/screenshots/filtered-high-priority.png) |
-| **Unfiltered**, header reading `Showing 13 of 13`. Each card carries priority, category, provenance badge, a one-line summary and a next action. | **Priority = High.** `inb-005` — the angry-client voicemail — is being forced to fail, and stays on screen with an inline error and a Retry button. The counter says `Showing 2 of 13 · 1 not triaged yet, kept visible`. |
+| **Unfiltered**, `Showing 13 of 13`. Each card has a priority edge and badges for priority, category and provenance, then a one-line summary and a next action. | **Priority = High.** `inb-005`, the angry-client voicemail, is forced to fail. It stays on screen with an inline error and a Retry button, and the counter says `1 not triaged yet, kept visible`. |
 
-![Category filtered to Noise / other, showing a heuristic flag badge](docs/screenshots/flagged-and-noise.png)
+![Category filtered to Noise / other, showing heuristic flag badges](docs/screenshots/flagged-and-noise.png)
 
-**Category = `Noise / other`**, `Showing 5 of 13`. The card at the bottom edge
-is the malformed sample (`inb-010`, body `"."`): badged
-`flagged: empty_or_near_empty_body` and resolved without a model call.
+**Category = `Noise / other`.** The malformed samples (`inb-010`, body `"."`,
+and `inb-011`, garbled bytes) carry a `flagged:` badge and were resolved
+without a model call.
+
+<img src="docs/screenshots/mobile-list.png" alt="The list at phone width" width="300">
+
+At 390px the filters stack full width. This view loaded after the desktop run
+had filled the cache, so its rows carry `cached` next to the baseline badge
+rather than in place of it.
 
 Terminal captures, all real runs: [`docs/api-transcript.txt`](docs/api-transcript.txt)
-(curl against a live backend with **no key set**),
+(curl against the compose stack with **no key set**),
 [`docs/eval-stub-baseline.txt`](docs/eval-stub-baseline.txt),
 [`docs/bench-lookup.txt`](docs/bench-lookup.txt).
 
@@ -203,7 +226,7 @@ backend/src/triage_backend/
     providers/          structured.py + anthropic / openai / stub
   routing/            stage 3 — triage() policy + content-keyed ResultCache
   routes/             HTTP surface only, deliberately thin
-backend/tests/        154 tests, sockets blocked
+backend/tests/        156 tests, sockets blocked
 backend/scripts/      evaluate.py (scores against eval/golden.json), bench_lookup.py
 backend/eval/golden.json   reference labels, with the reasoning for each
 backend/data/inbound.json  the 13-message corpus
@@ -211,7 +234,9 @@ backend/data/inbound.json  the 13-message corpus
 frontend/src/
   App.tsx             view state and effects only
   lib/selectors.ts    filtering logic, tested without a DOM
+  lib/provenance.ts   what produced a result, read through a cache hit
   lib/limiter.ts      concurrency cap for the auto-triage fan-out
+  lib/labels.ts       display names for categories and priorities
   components/         FilterBar, MessageList, MessageCard
 ```
 
@@ -236,19 +261,24 @@ Read from the environment or `backend/.env`, all of it documented in
 | `TRIAGE_FORCE_ERROR_ID` | *(empty)* | Force one id to fail, to demonstrate the per-row error + Retry path on demand. |
 | `VITE_PORT` | `5173` | Frontend dev-server port. |
 | `VITE_API_TARGET` | `http://localhost:8787` | Where the dev server proxies `/api`. |
+| `WEB_PORT` / `API_PORT` | `8761` / `8762` | Compose only: host ports for the UI and the API. |
+
+Compose reads the root [`.env.example`](.env.example) copy (`.env`) for the
+same variables. The backend image installs the `openai` extra by default;
+build with `--build-arg EXTRAS=` for an Anthropic-only image.
 
 ## Checks
 
 ```bash
 cd backend
-uv run pytest                                         # 154 passed
+uv run pytest                                         # 156 passed
 uv run ruff check . && uv run ruff format --check .
 LLM_PROVIDER=stub uv run python scripts/evaluate.py   # free, offline
 uv run python scripts/bench_lookup.py
 
 cd ../frontend
-pnpm test                                             # 21 passed
-pnpm lint && pnpm exec tsc -b
+pnpm test                                             # 27 passed
+pnpm lint && pnpm build && pnpm format:check
 ```
 
 **No test in either suite makes a network call**, and on the backend that is
@@ -303,10 +333,9 @@ on, and paging a human with "needs human review" trains them to ignore it.
 - **No auth, no audit trail, no batching, no queue.** Anyone who can reach the
   API can triage anything, a re-triage overwrites the previous decision with no
   record, and one HTTP request per message does not survive real volume.
-- **The containers are unbuilt.** Both Dockerfiles are multi-stage, run
-  non-root and carry healthchecks, and `docker compose config` parses cleanly,
-  but no image has been built or booted here. Reviewed source, not verified
-  images.
+- **The backend image is not built from the lockfile.** It resolves
+  `pyproject.toml` with pip at build time, so an image can pick up newer
+  dependency versions than `uv.lock` pins.
 
 ## How I used AI
 
@@ -318,3 +347,7 @@ surfaced as a raw 500. The catch is now deliberately broad at that one
 boundary, and
 `tests/test_provider_anthropic.py::test_any_api_failure_becomes_a_triage_error`
 parametrises `TypeError` alongside `ConnectionError` so it cannot come back.
+
+## License
+
+MIT, see [`LICENSE`](LICENSE).
