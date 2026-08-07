@@ -54,14 +54,35 @@ class AnthropicProvider(StructuredOutputProvider):
         return response.content
 
     def _correction_turns(self, assistant_turn: Any, error: Exception) -> list[dict]:
+        correction = (
+            f"That tool call was invalid: {error}. "
+            f"Call {TRIAGE_TOOL['name']} again. {CORRECTION_INSTRUCTION}"
+        )
+        # The Messages API rejects a turn that follows a tool_use block unless
+        # it answers that block with a tool_result, so a plain-text correction
+        # would turn every corrective retry into a 400. Only a reply with no
+        # tool call at all gets the plain-text form.
+        tool_use_ids = [
+            block.id for block in assistant_turn if getattr(block, "type", None) == "tool_use"
+        ]
+        if not tool_use_ids:
+            return [
+                {"role": "assistant", "content": assistant_turn},
+                {"role": "user", "content": correction},
+            ]
         return [
             {"role": "assistant", "content": assistant_turn},
             {
                 "role": "user",
-                "content": (
-                    f"That tool call was invalid: {error}. "
-                    f"Call {TRIAGE_TOOL['name']} again. {CORRECTION_INSTRUCTION}"
-                ),
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool_use_id,
+                        "is_error": True,
+                        "content": correction,
+                    }
+                    for tool_use_id in tool_use_ids
+                ],
             },
         ]
 

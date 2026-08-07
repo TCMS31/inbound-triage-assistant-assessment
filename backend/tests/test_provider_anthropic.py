@@ -25,8 +25,10 @@ GOOD = {
 BAD_ENUM = {**GOOD, "category": "definitely_a_prospect"}
 
 
-def tool_response(payload: dict) -> SimpleNamespace:
-    return SimpleNamespace(content=[SimpleNamespace(type="tool_use", input=payload)])
+def tool_response(payload: dict, tool_use_id: str = "toolu_01") -> SimpleNamespace:
+    return SimpleNamespace(
+        content=[SimpleNamespace(type="tool_use", id=tool_use_id, input=payload)]
+    )
 
 
 def text_response(text: str = "sure thing") -> SimpleNamespace:
@@ -101,7 +103,32 @@ def test_invalid_enum_triggers_one_corrective_retry_then_succeeds(
     correction = llm._client.messages.calls[1]["messages"]
     assert correction[1]["role"] == "assistant"
     assert correction[2]["role"] == "user"
-    assert "invalid" in correction[2]["content"]
+
+
+def test_correction_after_a_tool_call_answers_it_with_a_tool_result(
+    provider, message: InboundMessage
+) -> None:
+    """The API refuses a plain-text user turn after a tool_use block, so the
+    correction has to be a tool_result for that block's id."""
+    llm = provider([tool_response(BAD_ENUM, tool_use_id="toolu_bad"), tool_response(GOOD)])
+    llm.triage(message)
+
+    reply = llm._client.messages.calls[1]["messages"][2]["content"]
+    assert isinstance(reply, list)
+    assert [block["type"] for block in reply] == ["tool_result"]
+    assert reply[0]["tool_use_id"] == "toolu_bad"
+    assert reply[0]["is_error"] is True
+    assert "invalid" in reply[0]["content"]
+    assert "definitely_a_prospect" in reply[0]["content"]
+
+
+def test_correction_after_a_text_reply_stays_plain_text(provider, message: InboundMessage) -> None:
+    llm = provider([text_response(), tool_response(GOOD)])
+    llm.triage(message)
+
+    reply = llm._client.messages.calls[1]["messages"][2]["content"]
+    assert isinstance(reply, str)
+    assert "no tool_use block" in reply
 
 
 def test_two_invalid_outputs_give_up_rather_than_loop(provider, message: InboundMessage) -> None:
