@@ -13,8 +13,11 @@ WORKDIR /build
 COPY pyproject.toml ./
 COPY src ./src
 
+# The OpenAI SDK is an optional extra. Compose passes OPENAI_API_KEY through,
+# so the image installs it unless built with --build-arg EXTRAS=.
+ARG EXTRAS=openai
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir .
+    && /opt/venv/bin/pip install --no-cache-dir ".${EXTRAS:+[$EXTRAS]}"
 
 # ---- runtime: no build tools, no source tree, no root ----
 FROM python:3.12-slim AS runtime
