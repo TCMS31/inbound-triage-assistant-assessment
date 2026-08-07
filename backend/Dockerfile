@@ -25,7 +25,9 @@ FROM python:3.12-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
-    PORT=8787
+    PORT=8787 \
+    INBOUND_PATH=/app/data/inbound.json \
+    RESULTS_PATH=/app/cache/results.json
 
 RUN useradd --create-home --uid 10001 triage
 WORKDIR /app
@@ -35,7 +37,9 @@ WORKDIR /app
 RUN mkdir -p /app/cache && chown triage:triage /app/cache
 
 COPY --from=builder /opt/venv /opt/venv
-# The message corpus and the writable cache directory.
+# The message corpus. config.py's defaults are relative to the source tree,
+# which does not exist once the package is installed into the venv, hence the
+# explicit INBOUND_PATH / RESULTS_PATH above.
 COPY --chown=triage:triage data ./data
 
 USER triage
