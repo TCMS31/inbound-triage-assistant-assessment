@@ -1,4 +1,5 @@
-import type { InboundMessage, RowState, TriageResponse, TriageSource } from "../types";
+import { provenanceOf, type Provenance } from "../lib/provenance";
+import type { InboundMessage, RowState, TriageResponse } from "../types";
 
 interface Props {
   message: InboundMessage;
@@ -16,9 +17,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   needs_review: "Needs review",
 };
 
-/** Sources worth calling out on a row. `llm` is the unremarkable default. */
-const SOURCE_LABELS: Partial<Record<TriageSource, string>> = {
-  cache: "cached",
+/** Origins worth calling out on a row. `llm` is the unremarkable default. */
+const ORIGIN_LABELS: Partial<Record<Provenance["origin"], string>> = {
   baseline: "offline rule baseline — not a model",
   fallback: "model output invalid — fallback",
 };
@@ -122,8 +122,8 @@ function TriageDone({
   const result = response.result;
   if (!result) return <span className="triage-status">No result returned.</span>;
 
-  const sourceLabel = SOURCE_LABELS[response.source];
-  const heuristicFlag = response.source === "heuristic" ? response.flags[0] : null;
+  const { origin, cached, heuristicReason } = provenanceOf(response);
+  const originLabel = ORIGIN_LABELS[origin];
 
   return (
     <div className="triage-result">
@@ -132,12 +132,13 @@ function TriageDone({
         <span className="badge category-badge">
           {CATEGORY_LABELS[result.category] ?? result.category}
         </span>
-        {heuristicFlag && (
+        {heuristicReason && (
           <span className="badge source-badge" title={response.flags.join(", ")}>
-            flagged: {heuristicFlag}
+            flagged: {heuristicReason}
           </span>
         )}
-        {sourceLabel && <span className="badge source-badge">{sourceLabel}</span>}
+        {originLabel && <span className="badge source-badge">{originLabel}</span>}
+        {cached && <span className="badge source-badge">cached</span>}
       </div>
       <p className="summary">{result.summary}</p>
       <p className="next-action">
