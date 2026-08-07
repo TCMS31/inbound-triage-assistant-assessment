@@ -12,6 +12,7 @@ const MAX_CONCURRENT_TRIAGE_CALLS = 3;
 export default function App() {
   const [messages, setMessages] = useState<InboundMessage[]>([]);
   const [rowStates, setRowStates] = useState<Record<string, RowState>>({});
+  const [listStatus, setListStatus] = useState<"loading" | "ready" | "failed">("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
@@ -42,6 +43,7 @@ export default function App() {
     fetchInbound()
       .then((items) => {
         setMessages(items);
+        setListStatus("ready");
         setRowStates(Object.fromEntries(items.map((m) => [m.id, { status: "idle" } as RowState])));
         void runWithLimit(
           items.map((m) => () => triageOne(m.id)),
@@ -50,6 +52,7 @@ export default function App() {
       })
       .catch((err: unknown) => {
         setLoadError(err instanceof Error ? err.message : String(err));
+        setListStatus("failed");
       });
   }, [triageOne]);
 
@@ -83,6 +86,8 @@ export default function App() {
       />
 
       <MessageList
+        status={listStatus}
+        total={messages.length}
         messages={selection.visible}
         rowStates={rowStates}
         onRetry={(id) => triageOne(id, { refresh: true })}
