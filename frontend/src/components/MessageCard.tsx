@@ -1,3 +1,4 @@
+import { CATEGORY_LABELS, PRIORITY_LABELS } from "../lib/labels";
 import { provenanceOf, type Provenance } from "../lib/provenance";
 import type { InboundMessage, RowState, TriageResponse } from "../types";
 
@@ -8,14 +9,6 @@ interface Props {
 }
 
 const SENTINEL_ORGS = new Set(["(individual)", "(unknown)", ""]);
-
-const CATEGORY_LABELS: Record<string, string> = {
-  prospect: "Prospect",
-  existing_client: "Existing client",
-  vendor_partner: "Vendor / partner",
-  noise_other: "Noise / other",
-  needs_review: "Needs review",
-};
 
 /** Origins worth calling out on a row. `llm` is the unremarkable default. */
 const ORIGIN_LABELS: Partial<Record<Provenance["origin"], string>> = {
@@ -128,7 +121,9 @@ function TriageDone({
   return (
     <div className="triage-result">
       <div className="badges">
-        <span className={`badge priority-${result.priority}`}>{result.priority}</span>
+        <span className={`badge priority-${result.priority}`}>
+          {PRIORITY_LABELS[result.priority]}
+        </span>
         <span className="badge category-badge">
           {CATEGORY_LABELS[result.category] ?? result.category}
         </span>
