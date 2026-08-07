@@ -24,7 +24,7 @@ export function FilterBar({
   unresolved,
 }: Props) {
   return (
-    <div className="filter-bar">
+    <section className="filter-bar" aria-label="Filters">
       <label htmlFor="filter-category">
         Category
         <select
@@ -59,6 +59,6 @@ export function FilterBar({
           <span className="filter-note"> · {unresolved} not triaged yet, kept visible</span>
         )}
       </span>
-    </div>
+    </section>
   );
 }

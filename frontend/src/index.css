@@ -1,46 +1,65 @@
+/* A private-office ledger rather than a SaaS dashboard: warm paper, pine ink,
+   a brass rule, and a serif for the things a person reads first. */
 :root {
   color-scheme: light dark;
-  --border: #d9d9df;
-  --muted: #6b7280;
-  --bg-card: #ffffff;
-  --bg-page: #f5f5f7;
-  --text: #1a1a1e;
-  --accent: #2544c9;
-  --danger-bg: #fde2e1;
-  --danger-text: #7a1f1a;
-  --high-bg: #fde2e1;
-  --high-text: #a01d17;
-  --medium-bg: #fef3c7;
-  --medium-text: #92650a;
-  --low-bg: #e4e7eb;
-  --low-text: #4b5563;
-  --category-bg: #e0e9ff;
-  --category-text: #2544c9;
-  --source-bg: #ece4ff;
-  --source-text: #5b21b6;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --paper: #f4f0e6;
+  --card: #fffdf8;
+  --ink: #1d2a26;
+  --muted: #55605a;
+  --rule: #d8d0bd;
+  --pine: #1f3b33;
+  --brass: #8a5f14;
+  --focus: #8a5f14;
+  --high: #a3261b;
+  --high-bg: #f8e1dc;
+  --medium: #7a5200;
+  --medium-bg: #f6ead0;
+  --low: #4c5652;
+  --low-bg: #e7e6df;
+  --tag-bg: #e3ebe6;
+  --tag: #1f3b33;
+  --note-bg: #efe7d4;
+  --note: #5c4410;
+  --danger-bg: #f8e1dc;
+  --danger: #8c1f16;
+
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.25rem;
+
+  font-family: var(--font-body);
+  line-height: 1.5;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --border: #33333a;
-    --muted: #9a9aa2;
-    --bg-card: #1c1c20;
-    --bg-page: #121214;
-    --text: #f0f0f2;
-    --accent: #93a7ff;
-    --danger-bg: #3a1c1a;
-    --danger-text: #ff9c94;
-    --high-bg: #3a1c1a;
-    --high-text: #ff9c94;
-    --medium-bg: #3a2f14;
-    --medium-text: #f2c661;
-    --low-bg: #26262b;
-    --low-text: #b5b5bd;
-    --category-bg: #1c2545;
-    --category-text: #9db2ff;
-    --source-bg: #2a2140;
-    --source-text: #c4adff;
+    --paper: #141a18;
+    --card: #1b2320;
+    --ink: #ece7da;
+    --muted: #a8b0a9;
+    --rule: #33403b;
+    --pine: #9cc7b5;
+    --brass: #d9a94f;
+    --focus: #e5b965;
+    --high: #ff9d8f;
+    --high-bg: #3d1f1b;
+    --medium: #f0c46a;
+    --medium-bg: #3a2e15;
+    --low: #bfc6c1;
+    --low-bg: #29312e;
+    --tag-bg: #22332d;
+    --tag: #b9dacb;
+    --note-bg: #352c19;
+    --note: #ecd09a;
+    --danger-bg: #3d1f1b;
+    --danger: #ffb0a5;
   }
 }
 
@@ -50,115 +69,202 @@
 
 body {
   margin: 0;
-  background: var(--bg-page);
-  color: var(--text);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .app {
-  max-width: 880px;
+  max-width: 54rem;
   margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+  padding: var(--space-6) var(--space-4) 4rem;
+}
+
+/* --- header ------------------------------------------------------------ */
+
+.app-header {
+  border-bottom: 2px solid var(--brass);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.firm {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass);
 }
 
 .app-header h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.6rem;
+  margin: var(--space-1) 0 var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1.15;
+  color: var(--pine);
 }
 
 .subtitle {
-  margin: 0 0 1.5rem;
+  margin: 0;
+  max-width: 38rem;
   color: var(--muted);
 }
 
 .load-error {
   background: var(--danger-bg);
-  color: var(--danger-text);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  color: var(--danger);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 6px;
+  margin: 0 0 var(--space-4);
 }
+
+/* --- filters ----------------------------------------------------------- */
 
 .filter-bar {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 1.25rem;
+  align-items: flex-end;
+  gap: var(--space-4);
   flex-wrap: wrap;
+  margin-bottom: var(--space-5);
 }
 
 .filter-bar label {
   display: flex;
   flex-direction: column;
-  font-size: 0.8rem;
+  gap: var(--space-1);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--muted);
-  gap: 0.25rem;
 }
 
 .filter-bar select {
-  padding: 0.35rem 0.5rem;
+  min-width: 11rem;
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .filter-count {
-  color: var(--muted);
-  font-size: 0.85rem;
   margin-left: auto;
+  font-size: 0.9rem;
+  color: var(--muted);
 }
+
+.filter-note {
+  color: var(--note);
+}
+
+/* --- message list ------------------------------------------------------ */
 
 .message-list {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: var(--space-3);
 }
 
 .message-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.15rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--rule);
+  border-radius: 4px 8px 8px 4px;
+  padding: var(--space-4) var(--space-5);
+}
+
+.message-card.edge-high {
+  border-left-color: var(--high);
+}
+
+.message-card.edge-medium {
+  border-left-color: var(--medium);
+}
+
+.message-card.edge-low {
+  border-left-color: var(--low);
+}
+
+.message-card:focus-within {
+  border-color: var(--focus);
 }
 
 .message-meta {
   display: flex;
-  gap: 0.6rem;
-  align-items: center;
-  font-size: 0.78rem;
-  color: var(--muted);
-  margin-bottom: 0.3rem;
   flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-1);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.message-id {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--brass);
 }
 
 .channel-badge {
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.from {
+  color: var(--ink);
+}
+
+.received-at {
+  margin-left: auto;
 }
 
 .message-card h3 {
-  margin: 0 0 0.4rem;
-  font-size: 1.02rem;
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.3;
 }
 
 .body-preview {
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-3);
   color: var(--muted);
-  font-size: 0.9rem;
-  max-height: 3.4em;
+  font-size: 0.92rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
+/* --- triage panel ------------------------------------------------------ */
+
 .triage-panel {
-  border-top: 1px dashed var(--border);
-  padding-top: 0.65rem;
+  border-top: 1px solid var(--rule);
+  padding-top: var(--space-3);
 }
 
 .triage-status {
+  font-size: 0.88rem;
   color: var(--muted);
-  font-size: 0.85rem;
 }
 
 .triage-loading {
@@ -171,7 +277,7 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.45;
+    opacity: 0.5;
   }
 }
 
@@ -183,109 +289,119 @@ body {
 
 .triage-error {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--high-text);
-  font-size: 0.88rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 0.9rem;
 }
 
 .triage-error button {
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-4);
   border: 1px solid currentColor;
-  background: none;
-  color: inherit;
   border-radius: 6px;
-  padding: 0.2rem 0.6rem;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.8rem;
+}
+
+.triage-error button:hover {
+  background: transparent;
 }
 
 .badges {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.45rem;
   flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .badge {
-  font-size: 0.72rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.18rem 0.55rem;
-  border-radius: 999px;
-}
-
-.priority-high,
-.priority-medium,
-.priority-low {
-  text-transform: capitalize;
 }
 
 .priority-high {
   background: var(--high-bg);
-  color: var(--high-text);
+  color: var(--high);
 }
 
 .priority-medium {
   background: var(--medium-bg);
-  color: var(--medium-text);
+  color: var(--medium);
 }
 
 .priority-low {
   background: var(--low-bg);
-  color: var(--low-text);
+  color: var(--low);
 }
 
 .category-badge {
-  background: var(--category-bg);
-  color: var(--category-text);
+  background: var(--tag-bg);
+  color: var(--tag);
 }
 
 .source-badge {
-  background: var(--source-bg);
-  color: var(--source-text);
+  background: var(--note-bg);
+  color: var(--note);
+  font-weight: 500;
 }
 
 .summary {
-  margin: 0 0 0.35rem;
-  font-size: 0.92rem;
+  margin: 0 0 var(--space-1);
+  font-size: 0.98rem;
 }
 
 .next-action {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 0.92rem;
   color: var(--muted);
+}
+
+.next-action strong {
+  color: var(--pine);
 }
 
 .empty-state {
-  color: var(--muted);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
   text-align: center;
-  padding: 2rem 0;
-}
-
-.filter-note {
-  font-style: italic;
-}
-
-.message-card:focus-within {
-  border-color: var(--accent);
+  color: var(--muted);
 }
 
 :where(select, button):focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 @media (max-width: 560px) {
   .app {
-    padding: 1.25rem 0.9rem 3rem;
+    padding: var(--space-5) var(--space-4) 3rem;
   }
 
-  .filter-bar {
-    gap: 0.75rem;
+  .filter-bar label,
+  .filter-bar select {
+    width: 100%;
   }
 
   .filter-count {
     margin-left: 0;
-    width: 100%;
+  }
+
+  .message-card {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .received-at {
+    margin-left: 0;
   }
 }

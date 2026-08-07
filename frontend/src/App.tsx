@@ -65,33 +65,40 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Inbound Triage Assistant</h1>
-        <p className="subtitle">Northwind Advisors — shared inbox triage, one message at a time</p>
+        <p className="firm">Northwind Advisors</p>
+        <h1>Inbound triage</h1>
+        <p className="subtitle">
+          The shared inbox, read one message at a time: a summary, a category, a priority and the
+          next step for whoever picks it up.
+        </p>
       </header>
 
-      {loadError && (
-        <p className="load-error" role="alert">
-          Failed to load inbound messages: {loadError}
-        </p>
-      )}
+      <main>
+        {loadError && (
+          <p className="load-error" role="alert">
+            Failed to load inbound messages: {loadError}
+          </p>
+        )}
 
-      <FilterBar
-        category={categoryFilter}
-        priority={priorityFilter}
-        onCategoryChange={setCategoryFilter}
-        onPriorityChange={setPriorityFilter}
-        total={messages.length}
-        visible={selection.visible.length}
-        unresolved={selection.unresolved}
-      />
+        <FilterBar
+          category={categoryFilter}
+          priority={priorityFilter}
+          onCategoryChange={setCategoryFilter}
+          onPriorityChange={setPriorityFilter}
+          total={messages.length}
+          visible={selection.visible.length}
+          unresolved={selection.unresolved}
+        />
 
-      <MessageList
-        status={listStatus}
-        total={messages.length}
-        messages={selection.visible}
-        rowStates={rowStates}
-        onRetry={(id) => triageOne(id, { refresh: true })}
-      />
+        <h2 className="visually-hidden">Messages</h2>
+        <MessageList
+          status={listStatus}
+          total={messages.length}
+          messages={selection.visible}
+          rowStates={rowStates}
+          onRetry={(id) => triageOne(id, { refresh: true })}
+        />
+      </main>
     </div>
   );
 }

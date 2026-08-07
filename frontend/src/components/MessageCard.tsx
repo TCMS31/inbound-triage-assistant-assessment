@@ -33,13 +33,17 @@ function senderLabel(message: InboundMessage): string {
 }
 
 export function MessageCard({ message, state, onRetry }: Props) {
+  const priority = state.status === "done" ? state.response.result?.priority : undefined;
   return (
-    <article className="message-card">
+    <article className={`message-card${priority ? ` edge-${priority}` : ""}`}>
       <header>
         <div className="message-meta">
+          <span className="message-id">{message.id}</span>
           <span className="channel-badge">{message.channel}</span>
           <span className="from">{senderLabel(message)}</span>
-          <span className="received-at">{formatReceivedAt(message.received_at)}</span>
+          <time className="received-at" dateTime={message.received_at}>
+            {formatReceivedAt(message.received_at)}
+          </time>
         </div>
         <h3>{message.subject || "(no subject)"}</h3>
       </header>
@@ -89,8 +93,10 @@ function TriageError({
 }) {
   return (
     <div className="triage-error" role="alert">
-      <span>⚠ Triage failed: {message}</span>
-      <button type="button" onClick={() => onRetry(id)}>
+      <span>
+        <strong>Triage failed:</strong> {message}
+      </span>
+      <button type="button" onClick={() => onRetry(id)} aria-label={`Retry triage for ${id}`}>
         Retry
       </button>
     </div>
