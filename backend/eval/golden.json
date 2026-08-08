@@ -1,0 +1,91 @@
+{
+  "about": "Hand-written reference labels for the 13-message sample corpus, written by a human reading the messages — not model output. `accepted_*` lists exist because some of these messages are genuinely ambiguous; scoring a model wrong for picking a defensible label would make the numbers worse than useless.",
+  "labels": [
+    {
+      "id": "inb-001",
+      "category": "prospect",
+      "priority": "high",
+      "accepted_priorities": ["high", "medium"],
+      "note": "$8M liquidity event, asking who to speak with. High-value warm prospect; 'medium' is defensible because there is no deadline."
+    },
+    {
+      "id": "inb-002",
+      "category": "existing_client",
+      "priority": "high",
+      "note": "Self-identified client, third-party (lender) deadline of Friday."
+    },
+    {
+      "id": "inb-003",
+      "category": "vendor_partner",
+      "priority": "low",
+      "note": "Cold software pitch to the firm."
+    },
+    {
+      "id": "inb-004",
+      "category": "noise_other",
+      "priority": "low",
+      "note": "LinkedIn recruiting outreach."
+    },
+    {
+      "id": "inb-005",
+      "category": "existing_client",
+      "priority": "high",
+      "note": "Client, fee complaint, explicitly unhappy, asks for a call back today. The single most expensive message to get wrong."
+    },
+    {
+      "id": "inb-006",
+      "category": "prospect",
+      "priority": "low",
+      "accepted_priorities": ["low", "medium"],
+      "note": "Real prospect who says 'no rush at all'. A model that reads 'asks about fees and minimums' as a buying signal lands on medium; both are arguable."
+    },
+    {
+      "id": "inb-007",
+      "category": "vendor_partner",
+      "priority": "medium",
+      "accepted_priorities": ["medium", "low"],
+      "note": "Referral partnership from another RIA — a partner proposal, not a product pitch, so more interesting than inb-003."
+    },
+    {
+      "id": "inb-008",
+      "category": "noise_other",
+      "priority": "low",
+      "note": "Automated newsletter."
+    },
+    {
+      "id": "inb-009",
+      "category": "prospect",
+      "accepted_categories": ["prospect", "existing_client"],
+      "priority": "medium",
+      "ambiguous": true,
+      "note": "'Just following up on our conversation' with an unknown org. There is genuinely not enough signal here to separate prospect from existing_client; the taxonomy cannot resolve it and neither can a human. Counted as ambiguous in the report rather than silently scored."
+    },
+    {
+      "id": "inb-010",
+      "category": "noise_other",
+      "priority": "low",
+      "heuristic": true,
+      "note": "Body is '.'. Expected to be caught by the malformed pre-check, never sent to a model."
+    },
+    {
+      "id": "inb-011",
+      "category": "noise_other",
+      "priority": "low",
+      "heuristic": true,
+      "note": "Control bytes, replacement characters, undecoded MIME encoded-word sender. Expected to be caught by the malformed pre-check."
+    },
+    {
+      "id": "inb-012",
+      "category": "existing_client",
+      "priority": "medium",
+      "note": "Client, routine scheduling request, no urgency."
+    },
+    {
+      "id": "inb-013",
+      "category": "prospect",
+      "priority": "high",
+      "accepted_priorities": ["high", "medium"],
+      "note": "Referred by a named existing client and asking for an intro call soon — the warm-referral case the priority guide calls high."
+    }
+  ]
+}
