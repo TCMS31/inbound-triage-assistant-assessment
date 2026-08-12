@@ -1,0 +1,13 @@
+.venv/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+**/__pycache__/
+*.egg-info/
+.env
+data/results.json
+data/.eval-cache.json
+tests/
+scripts/
+eval/
+uv.lock
