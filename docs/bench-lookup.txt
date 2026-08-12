@@ -1,0 +1,7 @@
+  corpus    naive (pre-uplift)     indexed (current)    speedup
+------------------------------------------------------------------
+      13               48.1 us               2.91 us        16x
+    1000             2374.0 us               2.70 us       879x
+   10000            26202.3 us               2.91 us      9002x
+
+200 lookups per cell, mean per lookup. Python 3.12.6 on darwin.

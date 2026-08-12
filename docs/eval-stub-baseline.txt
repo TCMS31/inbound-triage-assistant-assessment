@@ -1,0 +1,25 @@
+$ LLM_PROVIDER=stub uv run python scripts/evaluate.py
+provider=stub  messages=13  scored=12  ambiguous=1  errors=0  0.0s
+sources: {'baseline': 11, 'heuristic': 2}
+
+category  12/12 (100%)
+priority  11/12 (92%)
+both      11/12 (92%)
+
+id        source     category (actual/expected)         priority (actual/expected)
+--------------------------------------------------------------------------------
+inb-001   baseline   prospect / prospect                medium / high              cat:ok pri:ok
+inb-002   baseline   existing_client / existing_client  high / high                cat:ok pri:ok
+inb-003   baseline   vendor_partner / vendor_partner    medium / low               cat:ok pri:MISS
+inb-004   baseline   noise_other / noise_other          low / low                  cat:ok pri:ok
+inb-005   baseline   existing_client / existing_client  high / high                cat:ok pri:ok
+inb-006   baseline   prospect / prospect                low / low                  cat:ok pri:ok
+inb-007   baseline   vendor_partner / vendor_partner    medium / medium            cat:ok pri:ok
+inb-008   baseline   noise_other / noise_other          low / low                  cat:ok pri:ok
+inb-009   baseline   prospect / prospect                medium / medium            ~ ambiguous
+inb-010   heuristic  noise_other / noise_other          low / low                  cat:ok pri:ok
+inb-011   heuristic  noise_other / noise_other          low / low                  cat:ok pri:ok
+inb-012   baseline   existing_client / existing_client  medium / medium            cat:ok pri:ok
+inb-013   baseline   prospect / prospect                medium / high              cat:ok pri:ok
+
+~ = genuinely ambiguous message, excluded from the accuracy numbers
